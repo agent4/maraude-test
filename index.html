@@ -62,6 +62,39 @@ input[type=range]::-moz-range-thumb{width:34px;height:34px;border:3px solid var(
 .left{font-size:13px;color:var(--muted);margin-top:10px}
 .left b{color:var(--text)}
 
+/* liens du haut */
+.toplinks{display:flex;gap:8px;margin-bottom:16px}
+.toplinks button{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:12px 10px;font-size:15px;font-weight:600;color:var(--text);
+  background:var(--surface);border:1px solid var(--line);border-radius:12px;cursor:pointer}
+.toplinks button:active{background:var(--surface-2)}
+.toplinks svg{width:19px;height:19px;flex:none}
+
+/* panneau plein écran (QR / script) */
+.panel{position:fixed;inset:0;z-index:200;display:none;flex-direction:column}
+.panel.open{display:flex}
+.panel-head{display:flex;justify-content:flex-end;padding:14px 14px 0}
+.panel-close{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);
+  color:var(--text);font-size:20px;line-height:1;cursor:pointer}
+.panel-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:20px 24px calc(24px + env(safe-area-inset-bottom,0px));overflow-y:auto;text-align:center}
+
+.panel.qr{background:#FFFFFF}
+.panel.qr .panel-close{background:#F2F2F2;border-color:#DDD;color:#111}
+.panel.qr img{width:min(78vw,340px);height:auto;image-rendering:pixelate}
+.panel.qr h2{color:#111;font-size:18px;margin:18px 0 4px}
+.panel.qr p{color:#555;font-size:14px;margin:0;max-width:320px}
+
+.panel.script{background:var(--bg)}
+.panel-body.script-body{align-items:stretch;text-align:left;max-width:520px;margin:0 auto;width:100%}
+.script-body h2{font-size:19px;margin:0 0 4px}
+.script-body .tag{background:none;border:none;padding:0;margin:0 0 18px;display:block}
+.script-body .k{color:var(--accent);font-size:13px;font-weight:600;letter-spacing:.01em;margin:22px 0 8px}
+.script-body .k:first-child{margin-top:0}
+.script-body ul{margin:0;padding-left:18px}
+.script-body li{margin-bottom:7px;font-size:15px;line-height:1.4}
+.script-body li::marker{color:var(--accent)}
+
 /* session, intégrée à la barre d'envoi */
 .session{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);margin-bottom:10px}
 .session .n{color:var(--text);font-weight:600}
@@ -106,6 +139,17 @@ input[type=range]::-moz-range-thumb{width:34px;height:34px;border:3px solid var(
 <div class="wrap">
   <h1>Relevé maraude</h1>
   <p class="sub">Un relevé par point d'observation. Tout est pré-rempli, vérifiez et envoyez.</p>
+
+  <div class="toplinks">
+    <button type="button" id="openQr">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.39 1.26 4.82L2 22l5.42-1.32c1.38.71 2.94 1.13 4.62 1.13 5.46 0 9.91-4.45 9.91-9.91C21.95 6.45 17.5 2 12.04 2m0 1.67c4.55 0 8.24 3.69 8.24 8.24 0 4.55-3.69 8.24-8.24 8.24-1.51 0-2.93-.41-4.15-1.12l-.3-.17-3.09.75.77-3.02-.19-.31a8.18 8.18 0 0 1-1.28-4.37c0-4.55 3.7-8.24 8.24-8.24m-4.32 4.4c-.16 0-.42.06-.64.31s-.85.83-.85 2.02.87 2.35.99 2.51 1.71 2.65 4.17 3.7c2.05.88 2.47.7 2.92.66s1.44-.59 1.65-1.16.2-1.06.14-1.16-.23-.16-.48-.28-1.44-.71-1.66-.79-.38-.12-.54.12-.62.79-.76.95-.28.19-.53.06a6.66 6.66 0 0 1-1.96-1.21 7.36 7.36 0 0 1-1.36-1.69c-.14-.24 0-.37.11-.5.11-.11.24-.28.36-.42s.16-.24.24-.4.04-.3-.02-.42-.54-1.3-.74-1.78-.4-.4-.54-.4-.31-.01-.5-.01"/></svg>
+      Groupe WhatsApp
+    </button>
+    <button type="button" id="openScript">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 3h8l4 4v14H7z"/><path d="M15 3v4h4M9 13h6M9 17h6M9 9h2"/></svg>
+      Script
+    </button>
+  </div>
 
   <section>
     <label class="lbl" for="prenom">Votre prénom</label>
@@ -157,6 +201,41 @@ input[type=range]::-moz-range-thumb{width:34px;height:34px;border:3px solid var(
     </div>
     <input type="range" id="slider" min="0" max="30" step="1" value="0" aria-label="Nombre de livreurs">
   </section>
+
+</div>
+
+<div class="panel qr" id="panelQr">
+  <div class="panel-head"><button class="panel-close" id="closeQr" aria-label="Fermer">&times;</button></div>
+  <div class="panel-body">
+    <img src="data:image/png;base64,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" alt="QR code du groupe WhatsApp">
+    <h2>Rejoindre le groupe WhatsApp</h2>
+    <p>Écran mis en pause à l'affichage pour que le QR reste lisible pendant le scan.</p>
+  </div>
+</div>
+
+<div class="panel script" id="panelScript">
+  <div class="panel-head"><button class="panel-close" id="closeScript" aria-label="Fermer">&times;</button></div>
+  <div class="panel-body script-body">
+    <h2>La Maison des Livreurs de Nantes</h2>
+    <div class="k">Le projet</div>
+    <ul>
+      <li>Une maraude de bénévoles va à la rencontre des livreurs, sur leur lieu de travail</li>
+      <li>On observe et on échange, sans jugement ni obligation</li>
+      <li>Objectif : mieux connaître les conditions réelles de travail pour agir dessus</li>
+    </ul>
+    <div class="k">La Maison des Livreurs</div>
+    <ul>
+      <li>Association nantaise qui lutte contre l'ubérisation des conditions de travail</li>
+      <li>Soutient les livreurs et travailleurs précaires de la métropole</li>
+      <li>Portée par et pour les livreurs, indépendante des plateformes</li>
+    </ul>
+    <div class="k">Ce que ça change pour eux</div>
+    <ul>
+      <li>Un endroit où être écouté et défendu face aux plateformes</li>
+      <li>Des infos claires sur leurs droits (accident, désactivation de compte, statut)</li>
+      <li>Un collectif : moins isolé, plus de poids pour faire bouger les choses</li>
+    </ul>
+  </div>
 </div>
 
 <div class="bar"><div class="inner">
@@ -182,6 +261,27 @@ const BRANDS = ["Deliveroo","Uber Eats","Autre / inconnu"];
 const $ = s => document.querySelector(s);
 const state = { total:0, modes:{}, brands:{}, lat:null, lon:null, acc:null, moved:false, detailed:true };
 MODES.forEach(m=>state.modes[m]=0); BRANDS.forEach(b=>state.brands[b]=0);
+
+/* --- panneaux QR whatsapp / script --- */
+let wakeLock = null;
+async function lockScreen(){
+  try{ wakeLock = await navigator.wakeLock?.request("screen"); }catch(e){ wakeLock = null; }
+}
+function unlockScreen(){ try{ wakeLock?.release(); }catch(e){} wakeLock = null; }
+
+function openPanel(id, withWakeLock){
+  $(id).classList.add("open");
+  if(withWakeLock) lockScreen();
+}
+function closePanel(id){ $(id).classList.remove("open"); unlockScreen(); }
+
+$("#openQr").onclick = () => openPanel("#panelQr", true);
+$("#closeQr").onclick = () => closePanel("#panelQr");
+$("#openScript").onclick = () => openPanel("#panelScript", false);
+$("#closeScript").onclick = () => closePanel("#panelScript");
+document.addEventListener("visibilitychange", () => {
+  if(document.visibilityState === "visible" && $("#panelQr").classList.contains("open")) lockScreen();
+});
 
 /* --- maraude en cours ------------------------------------------------
    Une "maraude" = une sortie. Elle se ferme à la main ou toute seule
