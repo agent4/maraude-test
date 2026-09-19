@@ -63,7 +63,9 @@ input[type=range]::-moz-range-thumb{width:34px;height:34px;border:3px solid var(
 .left b{color:var(--text)}
 
 /* carte */
-#map{height:220px;border-radius:10px;border:1px solid var(--line);margin-top:4px}
+#map{height:253px;border-radius:10px;border:1px solid var(--line);margin-top:4px}
+.coords{font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted);margin-top:8px;display:flex;gap:16px}
+.coords b{color:var(--text);font-weight:600}
 .leaflet-container{background:var(--surface-2)}
 .gps{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);margin-top:8px;flex-wrap:wrap}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
@@ -130,6 +132,7 @@ input[type=range]::-moz-range-thumb{width:34px;height:34px;border:3px solid var(
   <section>
     <span class="lbl">Position — déplacez la pastille si besoin</span>
     <div id="map"></div>
+  <div class="coords"><span>Lat <b id="latTxt">—</b></span><span>Lon <b id="lonTxt">—</b></span></div>
     <div class="gps">
       <span class="dot" id="dot"></span>
       <span id="gpsTxt">Recherche du signal GPS…</span>
@@ -238,6 +241,8 @@ function setPos(lat,lon,{fromUser=false, acc=null}={}){
   state.lat = lat; state.lon = lon;
   if(fromUser){ state.moved = true; } else { state.acc = acc; }
   marker.setLatLng([lat,lon]);
+  $("#latTxt").textContent = lat.toFixed(6);
+  $("#lonTxt").textContent = lon.toFixed(6);
   if(!fromUser){
     if(halo) map.removeLayer(halo);
     if(acc) halo = L.circle([lat,lon],{radius:acc,color:"#FFB020",weight:1,fillOpacity:.08}).addTo(map);
@@ -354,6 +359,9 @@ async function post(rec){
     headers:{"Content-Type":"text/plain;charset=utf-8"},   // évite le préflight CORS
     body: JSON.stringify(rec) });
   if(!r.ok) throw new Error("http "+r.status);
+  let body = null;
+  try{ body = await r.json(); }catch(e){ throw new Error("réponse illisible du serveur"); }
+  if(!body || body.ok !== true) throw new Error(body && body.error ? body.error : "le serveur a refusé l'envoi");
   return true;
 }
 async function flush(){
@@ -387,15 +395,15 @@ $("#send").onclick = async () => {
   };
 
   $("#send").disabled = true; $("#send").textContent = "Envoi…";
-  let differe = false;
+  let differe = false, erreur = "";
   try{ await post(rec); }
-  catch(e){ const q = readQ(); q.push(rec); writeQ(q); differe = true; }
+  catch(e){ const q = readQ(); q.push(rec); writeQ(q); differe = true; erreur = e.message || String(e); }
   $("#send").disabled = false; $("#send").textContent = "Envoyer le relevé";
 
   sess.points.push({id:rec.id, lat:rec.lat, lon:rec.lon, total:rec.livreurs, envoye:!differe});
   sess.maj = Date.now(); saveSess(); paintSess(); drawPast();
   toast(differe
-    ? `Point ${rec.point_n} gardé sur le téléphone, il partira dès le retour du réseau.`
+    ? `Point ${rec.point_n} gardé sur le téléphone (${erreur}). Nouvel essai automatique.`
     : `Point ${rec.point_n} enregistré. Prêt pour le suivant.`, differe);
 
   // point suivant : prénom et maraude conservés, tout le reste repart à zéro
